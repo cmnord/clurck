@@ -60,13 +60,54 @@ fn main() -> ! {
     // LED to one of the GPIO pins, and reference that pin here.
     let mut led_pin = pins.led.into_push_pull_output();
 
+    // Rows are GPIO 0-12
+    let mut row_pins = [
+        pins.gpio0.into_push_pull_output().into_dyn_pin(),
+        pins.gpio1.into_push_pull_output().into_dyn_pin(),
+        pins.gpio2.into_push_pull_output().into_dyn_pin(),
+        pins.gpio3.into_push_pull_output().into_dyn_pin(),
+        pins.gpio4.into_push_pull_output().into_dyn_pin(),
+        pins.gpio5.into_push_pull_output().into_dyn_pin(),
+        pins.gpio6.into_push_pull_output().into_dyn_pin(),
+        pins.gpio7.into_push_pull_output().into_dyn_pin(),
+        pins.gpio8.into_push_pull_output().into_dyn_pin(),
+        pins.gpio9.into_push_pull_output().into_dyn_pin(),
+        pins.gpio10.into_push_pull_output().into_dyn_pin(),
+        pins.gpio11.into_push_pull_output().into_dyn_pin(),
+        pins.gpio12.into_push_pull_output().into_dyn_pin(),
+    ];
+
+    // Columns are pins 18-21
+    let mut col_pins = [
+        pins.gpio18.into_push_pull_output().into_dyn_pin(),
+        pins.gpio19.into_push_pull_output().into_dyn_pin(),
+        pins.gpio20.into_push_pull_output().into_dyn_pin(),
+        pins.gpio21.into_push_pull_output().into_dyn_pin(),
+    ];
+
     loop {
         info!("on!");
+
         led_pin.set_high().unwrap();
         delay.delay_ms(500);
         info!("off!");
         led_pin.set_low().unwrap();
         delay.delay_ms(500);
+
+        for col_pin in col_pins.iter_mut() {
+            col_pin.set_high().unwrap();
+            delay.delay_us(10);
+
+            for row_pin in row_pins.iter_mut() {
+                row_pin.set_high().unwrap();
+                delay.delay_us(10);
+                row_pin.set_low().unwrap();
+                delay.delay_us(10);
+            }
+
+            col_pin.set_low().unwrap();
+            delay.delay_us(9990);
+        }
     }
 }
 
