@@ -77,12 +77,12 @@ fn main() -> ! {
         pins.gpio12.into_push_pull_output().into_dyn_pin(),
     ];
 
-    // Columns are pins 18-21
+    // Columns are pins 19-22
     let mut col_pins = [
-        pins.gpio18.into_push_pull_output().into_dyn_pin(),
         pins.gpio19.into_push_pull_output().into_dyn_pin(),
         pins.gpio20.into_push_pull_output().into_dyn_pin(),
         pins.gpio21.into_push_pull_output().into_dyn_pin(),
+        pins.gpio22.into_push_pull_output().into_dyn_pin(),
     ];
 
     loop {
