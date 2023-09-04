@@ -3,8 +3,12 @@
 //! This will blink an LED attached to GP25, which is the pin the Pico uses for the on-board LED.
 #![no_std]
 #![no_main]
+#![feature(const_for)]
 
-use bsp::entry;
+use bsp::{
+    entry,
+    hal::gpio::{DynPinId, FunctionSio, Pin, PullDown, SioOutput},
+};
 use defmt::*;
 use defmt_rtt as _;
 use embedded_hal::digital::v2::OutputPin;
@@ -17,10 +21,12 @@ use rp_pico as bsp;
 
 use bsp::hal::{
     clocks::{init_clocks_and_plls, Clock},
-    pac,
+    pac, rtc,
     sio::Sio,
     watchdog::Watchdog,
 };
+
+mod digit;
 
 #[entry]
 fn main() -> ! {
@@ -43,6 +49,20 @@ fn main() -> ! {
     )
     .ok()
     .unwrap();
+
+    // TODO: read initial datetime from serial
+    let initial_date = rtc::DateTime {
+        year: 2023,
+        month: 9,
+        day: 3,
+        day_of_week: rtc::DayOfWeek::Sunday,
+        hour: 14,
+        minute: 14,
+        second: 0,
+    };
+
+    let real_time_clock =
+        rtc::RealTimeClock::new(pac.RTC, clocks.rtc_clock, &mut pac.RESETS, initial_date).unwrap();
 
     let mut delay = cortex_m::delay::Delay::new(core.SYST, clocks.system_clock.freq().to_Hz());
 
@@ -85,30 +105,72 @@ fn main() -> ! {
         pins.gpio22.into_push_pull_output().into_dyn_pin(),
     ];
 
-    loop {
-        info!("on!");
+    // now_digits is a 4-digit representation of the current time written to in the
+    // main loop and read from in the print_digits interrupt.
+    let mut now_digits: [usize; 4] = [0, 0, 0, 0];
 
+    loop {
+        let now = real_time_clock.now().unwrap();
+        now_digits[0] = now.hour as usize / 10;
+        now_digits[1] = now.hour as usize % 10;
+        now_digits[2] = now.minute as usize / 10;
+        now_digits[3] = now.minute as usize % 10;
+
+        info!("on!");
         led_pin.set_high().unwrap();
         delay.delay_ms(500);
         info!("off!");
         led_pin.set_low().unwrap();
         delay.delay_ms(500);
 
-        for col_pin in col_pins.iter_mut() {
-            col_pin.set_high().unwrap();
-            delay.delay_us(10);
+        // TODO: print multiple digits
+        // for (k, channel) in channels.iter().enumerate() {
+        let k: usize = 0;
+        let char_for_digit = now_digits[k];
 
-            for row_pin in row_pins.iter_mut() {
-                row_pin.set_high().unwrap();
-                delay.delay_us(10);
-                row_pin.set_low().unwrap();
-                delay.delay_us(10);
-            }
-
-            col_pin.set_low().unwrap();
-            delay.delay_us(9990);
+        if let Some(digit) = digit::DIGITS.get(char_for_digit - 1) {
+            print_digit(digit, &mut row_pins, &mut col_pins, &mut delay, 100, 0.1);
         }
     }
 }
 
-// End of file
+type MyPin = Pin<DynPinId, FunctionSio<SioOutput>, PullDown>;
+
+// print_digit drives the row and column pins to display the given digit for
+// duration_us.
+fn print_digit(
+    digit: &digit::DigitArray,
+    row_pins: &mut [MyPin; digit::NUM_ROWS],
+    col_pins: &mut [MyPin; digit::NUM_COLS],
+    delay: &mut cortex_m::delay::Delay,
+    duration_us: u32,
+    brightness: f32,
+) {
+    let duration_per_frame_ns = duration_us * 1000 / digit::NUM_COLS as u32;
+    let duration_on_per_frame_ns = (duration_per_frame_ns as f32 * brightness) as u32;
+    let duration_on_per_frame_us = duration_on_per_frame_ns / 1000;
+    let duration_off_per_frame_us = (duration_per_frame_ns - duration_on_per_frame_ns) / 1000;
+
+    for (j, col_pin) in col_pins.iter_mut().enumerate() {
+        let mut num_rows_lit = 0;
+        // Set the relevant row pins high for the column
+        let digit_col = digit[j];
+        for (digit_i, val) in digit_col.iter().enumerate() {
+            if *val == 1 {
+                row_pins[digit_i].set_high().unwrap();
+                num_rows_lit += 1;
+            }
+        }
+        if num_rows_lit > 0 {
+            col_pin.set_high().unwrap();
+        }
+        delay.delay_us(duration_on_per_frame_us);
+
+        // Set all pins low
+        col_pin.set_low().unwrap();
+        for row_pin in row_pins.iter_mut() {
+            row_pin.set_low().unwrap();
+        }
+        delay.delay_us(duration_off_per_frame_us);
+    }
+}
