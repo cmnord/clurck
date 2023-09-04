@@ -5,6 +5,8 @@
 #![no_main]
 #![feature(const_for)]
 
+include!(concat!(env!("OUT_DIR"), "/build_time.rs"));
+
 use bsp::{
     entry,
     hal::gpio::{DynPinId, FunctionSio, Pin, PullDown, SioOutput},
@@ -27,6 +29,19 @@ use bsp::hal::{
 };
 
 mod digit;
+
+fn day_of_week_from_u8(v: u8) -> Result<rtc::DayOfWeek, rtc::DateTimeError> {
+    Ok(match v {
+        0 => rtc::DayOfWeek::Sunday,
+        1 => rtc::DayOfWeek::Monday,
+        2 => rtc::DayOfWeek::Tuesday,
+        3 => rtc::DayOfWeek::Wednesday,
+        4 => rtc::DayOfWeek::Thursday,
+        5 => rtc::DayOfWeek::Friday,
+        6 => rtc::DayOfWeek::Saturday,
+        x => return Err(rtc::DateTimeError::InvalidDayOfWeek(x)),
+    })
+}
 
 #[entry]
 fn main() -> ! {
@@ -52,13 +67,13 @@ fn main() -> ! {
 
     // TODO: read initial datetime from serial
     let initial_date = rtc::DateTime {
-        year: 2023,
-        month: 9,
-        day: 3,
-        day_of_week: rtc::DayOfWeek::Sunday,
-        hour: 14,
-        minute: 14,
-        second: 0,
+        year: BUILD_TIME.year,
+        month: BUILD_TIME.month,
+        day: BUILD_TIME.day,
+        day_of_week: day_of_week_from_u8(BUILD_TIME.day_of_week).unwrap(),
+        hour: BUILD_TIME.hour,
+        minute: BUILD_TIME.minute,
+        second: BUILD_TIME.second,
     };
 
     let real_time_clock =
@@ -128,7 +143,7 @@ fn main() -> ! {
         let k: usize = 0;
         let char_for_digit = now_digits[k];
 
-        if let Some(digit) = digit::DIGITS.get(char_for_digit - 1) {
+        if let Some(digit) = digit::DIGITS.get(char_for_digit) {
             print_digit(digit, &mut row_pins, &mut col_pins, &mut delay, 100, 0.1);
         }
     }
