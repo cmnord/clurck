@@ -42,19 +42,142 @@ const DIGIT_TWO: DigitArray = transpose([
     [0, X, X, 0],
     [X, X, X, X],
     [X, 0, 0, X],
-    [0, 0, X, 0],
-    [0, 0, X, 0],
-    [0, 0, X, 0],
-    [0, 0, X, 0],
-    [0, 0, X, 0],
-    [0, 0, X, 0],
-    [0, 0, X, 0],
-    [0, 0, X, 0],
-    [0, 0, X, 0],
-    [0, 0, X, 0],
+    [0, 0, 0, X],
+    [0, 0, 0, X],
+    [0, 0, X, X],
+    [0, X, X, 0],
+    [X, X, 0, 0],
+    [X, 0, 0, 0],
+    [X, 0, 0, 0],
+    [X, 0, 0, X],
+    [X, X, X, X],
+    [0, X, X, 0],
 ]);
 
-pub const DIGITS: [DigitArray; 3] = [DIGIT_ZERO, DIGIT_ONE, DIGIT_TWO];
+const DIGIT_THREE: DigitArray = transpose([
+    [0, X, X, 0],
+    [X, X, X, X],
+    [0, 0, 0, X],
+    [0, 0, 0, X],
+    [0, 0, 0, X],
+    [0, 0, X, X],
+    [0, 0, 0, 0],
+    [0, 0, X, X],
+    [0, 0, 0, X],
+    [0, 0, 0, X],
+    [X, 0, 0, X],
+    [X, X, X, X],
+    [0, X, X, 0],
+]);
+
+const DIGIT_FOUR: DigitArray = transpose([
+    [0, 0, 0, 0],
+    [X, 0, 0, 0],
+    [X, 0, 0, X],
+    [X, 0, 0, X],
+    [X, 0, 0, X],
+    [X, 0, X, X],
+    [X, X, X, X],
+    [X, X, 0, X],
+    [0, 0, 0, X],
+    [0, 0, 0, X],
+    [0, 0, 0, X],
+    [0, 0, 0, X],
+    [0, 0, 0, X],
+]);
+
+const DIGIT_FIVE: DigitArray = transpose([
+    [0, X, X, 0],
+    [X, X, X, X],
+    [X, 0, 0, X],
+    [X, 0, 0, 0],
+    [X, 0, 0, 0],
+    [X, X, 0, 0],
+    [0, X, X, 0],
+    [0, 0, X, X],
+    [0, 0, 0, X],
+    [0, 0, 0, X],
+    [X, 0, 0, X],
+    [X, X, X, X],
+    [0, X, X, 0],
+]);
+
+const DIGIT_SIX: DigitArray = transpose([
+    [0, X, X, 0],
+    [X, X, X, X],
+    [X, 0, 0, X],
+    [X, 0, 0, 0],
+    [X, 0, 0, 0],
+    [X, 0, 0, 0],
+    [X, X, X, 0],
+    [X, X, X, X],
+    [X, 0, 0, X],
+    [X, 0, 0, X],
+    [X, 0, 0, X],
+    [X, X, X, X],
+    [0, X, X, 0],
+]);
+
+const DIGIT_SEVEN: DigitArray = transpose([
+    [0, X, X, 0],
+    [X, X, X, X],
+    [X, 0, 0, X],
+    [X, 0, 0, X],
+    [X, 0, 0, X],
+    [0, 0, 0, X],
+    [0, 0, 0, X],
+    [0, 0, X, X],
+    [0, 0, 0, X],
+    [0, 0, 0, X],
+    [0, 0, 0, X],
+    [0, 0, 0, X],
+    [0, 0, 0, X],
+]);
+
+const DIGIT_EIGHT: DigitArray = transpose([
+    [0, X, X, 0],
+    [X, X, X, X],
+    [X, 0, 0, X],
+    [X, 0, 0, X],
+    [X, 0, 0, X],
+    [X, X, X, X],
+    [0, X, X, 0],
+    [X, X, X, X],
+    [X, 0, 0, X],
+    [X, 0, 0, X],
+    [X, 0, 0, X],
+    [X, X, X, X],
+    [0, X, X, 0],
+]);
+
+const DIGIT_NINE: DigitArray = transpose([
+    [0, X, X, 0],
+    [X, X, X, X],
+    [X, 0, 0, X],
+    [X, 0, 0, X],
+    [X, 0, 0, X],
+    [X, X, X, X],
+    [0, X, X, X],
+    [0, 0, 0, X],
+    [0, 0, 0, X],
+    [0, 0, 0, X],
+    [X, 0, 0, X],
+    [X, X, X, X],
+    [0, X, X, 0],
+]);
+
+pub const DIGITS: [DigitArray; 10] = [
+    DIGIT_ZERO,
+    DIGIT_ONE,
+    DIGIT_TWO,
+    DIGIT_THREE,
+    DIGIT_FOUR,
+    DIGIT_FIVE,
+    DIGIT_SIX,
+    DIGIT_SEVEN,
+    DIGIT_EIGHT,
+    DIGIT_NINE,
+];
 
 const fn transpose(arr: [[u8; NUM_COLS]; NUM_ROWS]) -> DigitArray {
     let mut transposed = [[0; NUM_ROWS]; NUM_COLS];
